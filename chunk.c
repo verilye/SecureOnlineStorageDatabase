@@ -21,6 +21,7 @@ void freeChunk(Chunk* chunk ){
 //Appending bytes to the end of the chunk as bytecode
 // 'Scanner' reads in symbols/unarys/literals and chucks em ere
 void writeChunk(Chunk* chunk, uint8_t byte, int line) {
+
   if (chunk->capacity < chunk->count + 1) {
     int oldCapacity = chunk->capacity;
     chunk->capacity = GROW_CAPACITY(oldCapacity);
@@ -33,6 +34,7 @@ void writeChunk(Chunk* chunk, uint8_t byte, int line) {
   chunk->code[chunk->count] = byte;
   chunk->lines[chunk->count] = line;
   chunk->count++;
+  
 }
 
 int addConstant(Chunk* chunk, Value value) {

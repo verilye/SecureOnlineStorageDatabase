@@ -1,109 +1,82 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "common.h"
 
 #include "chunk.h"
 #include "debug.h"
+#include "vm.h"
 
-// Recursive descent parser for my toy programming language
+static void repl(){
+    char line[1024];
+    for(;;){
+        printf("> ");
 
-int interactiveMode();
-int executeCommand(char ** string);
+        if(fgets(line, sizeof(line), stdin)){
+            printf("\n");
+        }
+        InterpretResult result = interpret(line);
+
+        if(result == INTERPRET_COMPILE_ERROR) exit(65);
+        if(result == INTERPRET_RUNTIME_ERROR) exit(70);
+    }
+}
+
+static char* readFile(const char* path){
+    FILE* file = fopen(path, "rb");
+    if(file == NULL){
+        fprintf(stderr,"Could not open file \"%s\".\n", path);
+        exit(74);
+    }
+
+    fseek(file, 0L, SEEK_END);
+    size_t fileSize = ftell(file);
+    rewind(file);
+
+    char* buffer = (char*)malloc(fileSize + 1);
+    if (buffer == NULL) {
+        fprintf(stderr, "Not enough memory to read \"%s\".\n", path);
+        exit(74);
+    }
+    size_t bytesRead = fread(buffer, sizeof(char), fileSize, file);
+    if (bytesRead < fileSize) {
+        fprintf(stderr, "Could not read file \"%s\".\n", path);
+        exit(74);
+    }
+    buffer[bytesRead] = '\0';
+
+    fclose(file);
+    return(buffer);
+
+}
+
+static void runFile(const char* path){
+    char* source = readFile(path);
+    InterpretResult result = interpret(source);
+    free(source);
+
+    if(result == INTERPRET_COMPILE_ERROR) exit(65);
+    if(result == INTERPRET_RUNTIME_ERROR) exit(70);
+}
+
 
 int main(int argc, char * argv[]){
 
-    // // Currently intended to start live coding, changed to take in input from the command line
-    // if(argc == 1 ){
+    //Initialises currently global VM for access from anywhere
+    initVM();
 
-    //     // live_coding()
-    //     // repl -? read-eval-print loop 
-    //     //interactiveMode();
-        
-    // // Take in input from file and exectue
-    // }else if(argc == 2){
-    //     // Read file path and execute code from file
-    //     // argc is always 1, second arg is filepath
-
-
-    // // Enter live coding mode and execute queries from the shell
-    // }else{
-
-    //     // print correct usage to command line -> ./parser [path]
-    // }
-
-    //clean everything up
-
+    if(argc == 1){
+        repl();
+    } else if(argc ==2){
+        runFile(argv[1]);
+    } else{
+        fprintf(stderr, "Usage: clox [path]\n");
+        exit(64);
+    }
+    
+    freeVM();
     return 0;
 
 }
 
-// Interactice coding loop, parse and execute user input from the terminal
-// int interactiveMode(){
-//     // A REPL loop should be able to take in multi line input and have no limit to what 
-//     // it can take in. The limiter should be the method by which it's being accessed
-
-//     struct DynamicArray buffer = {
-//         .size = BUFFERSIZE,
-//         .arr = malloc(BUFFERSIZE * sizeof(char))
-//     };
-
-
-//     int counter = 0;
-//     // This is the repl loop, terminates on program exit otherwise infinite
-//     for(;;){
-
-//         print("> ");
-
-//         // fgets each line in one at a time
-//         while(fgets(buffer.arr,buffer.size,stdin)){
-//             // reach the terminal character from fgets or reach the max buffer size first
-//             // if max buffer size reached first, resize buffer THEN feed in input
-//         }
-
-//         // Resize buffer when needed
-//         if(counter == buffer.size){
-//             if(resizeBuffer(&buffer) != 0){
-//                 // Command too big, exit execution
-//                 fprintf(stderr,"Failed to resize buffer");
-//                 return -1; 
-//             };
-//         }
-
-//         // fill the array up with ints represented as chars
-//         //buffer.arr[counter] = counter +'0';
-
-//         interpret();
-//         counter++;
-//     }
-
-//     // Output telemetry data?
-//     printf("Final buffer size: %d", buffer.size);
-
-//     // Free up everything, be a good lad
-//     free(buffer.arr);
-//     return 0;
-// }
-
-
-// string comes from file, command line or repl loop
-int executeCommand(char ** string ){
-
-    if(string){}
-    // Scanner
-
-    Chunk chunk;
-    initChunk(&chunk);
-
-    int constant = addConstant(&chunk, 1.2);
-    writeChunk(&chunk, OP_CONSTANT, 123);
-    writeChunk(&chunk, constant, 123);
-
-    writeChunk(&chunk, OP_RETURN, 123);
-
-    disassembleChunk(&chunk, "test chunk");
-    freeChunk(&chunk);
-
-        
-    return 0;
-}

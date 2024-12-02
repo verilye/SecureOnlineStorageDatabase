@@ -3,7 +3,7 @@ CC = clang
 CFLAGS = -Wall -Wextra -g
 LDFLAGS = 
 TARGET = parser
-SRC = command_parser.c chunk.c debug.c value.c memory.c
+SRC = $(wildcard *.c)
 OBJ = $(SRC:.c=.o)
 
 # Default target
