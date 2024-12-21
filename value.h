@@ -1,16 +1,19 @@
 #ifndef VALUE_H
 #define VALUE_H
 
+#include <string.h>
+
 #include "common.h"
 
 typedef struct Obj Obj;
+typedef struct ObjString ObjString;
 
 typedef enum{
     VAL_BOOL,
     VAL_NIL,
     VAL_STRING,
     VAL_NUMBER,
-    VAL_OBJ
+    VAL_OBJ,
     VAL_FILE
 } ValueType;
 
